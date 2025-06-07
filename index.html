@@ -893,7 +893,13 @@
         function openCart() {
             const cartItems = document.getElementById('cartItems');
             const cartTotal = document.getElementById('cartTotal');
-
+        
+            // 防呆檢查
+            if (!cartItems || !cartTotal) {
+                console.error("找不到 cartItems 或 cartTotal，請確認 HTML 是否載入完成");
+                return;
+            }
+        
             if (cart.length === 0) {
                 cartItems.innerHTML = '<div style="text-align: center; padding: 2rem; color: #666;">購物車是空的</div>';
                 cartTotal.textContent = '0';
@@ -903,7 +909,7 @@
                         <div class="cart-item-info">
                             <div class="cart-item-name">${item.name} x${item.quantity}</div>
                             <div class="cart-item-options">
-                                ${Object.entries(item.options).map(([key, value]) => 
+                                ${Object.entries(item.options).map(([key, value]) =>
                                     `${translations[currentLanguage][key] || key}: ${translations[currentLanguage][value] || value}`
                                 ).join(', ')}
                                 ${item.notes ? `<br>備註: ${item.notes}` : ''}
@@ -913,13 +919,14 @@
                         <button onclick="removeFromCart(${index})" style="background: #e74c3c; color: white; border: none; padding: 0.25rem 0.5rem; border-radius: 3px; margin-left: 0.5rem; cursor: pointer;">×</button>
                     </div>
                 `).join('');
-
+        
                 const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
                 cartTotal.textContent = total;
             }
-
+        
             document.getElementById('cartModal').classList.add('show');
         }
+
 
         function removeFromCart(index) {
             cart.splice(index, 1);
