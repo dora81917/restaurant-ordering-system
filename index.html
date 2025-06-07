@@ -1121,6 +1121,21 @@
                     });
             });
         }
+        // 自動識別桌號
+        function getTableNumberFromURL() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const tableParam = urlParams.get('table');
+            if (tableParam) {
+                document.getElementById('tableInput').value = tableParam;
+                updateTableNumber();
+            }
+        }
+        
+        // 在頁面載入時執行
+        document.addEventListener('DOMContentLoaded', function() {
+            getTableNumberFromURL();
+            initializeApp();
+        });
     </script>
 </body>
 </html>
