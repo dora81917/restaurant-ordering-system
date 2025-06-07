@@ -1,0 +1,93 @@
+// Google Apps Script 用於接收點餐數據並儲存到 Google Sheets
+// 完整版本包含錯誤處理、數據驗證和通知功能
+
+function doPost(e) {
+  try {
+    const sheet = SpreadsheetApp.getActiveSheet();
+    const data = JSON.parse(e.postData.contents);
+    
+    // 數據驗證
+    if (!data.tableNumber || !data.items || data.items.length === 0) {
+      throw new Error('缺少必要的訂單數據');
+    }
+    
+    // 格式化時間戳
+    const orderTime = new Date(data.timestamp);
+    const formattedTime = Utilities.formatDate(orderTime, Session.getScriptTimeZone(), 'yyyy-MM-dd HH:mm:ss');
+    
+    // 為每個訂單項目添加一行
+    data.items.forEach((item, index) => {
+      const row = [
+        formattedTime,                    // A: 訂單時間
+        data.tableNumber,                 // B: 桌號
+        item.name,                        // C: 商品名稱
+        item.quantity,                    // D: 數量
+        item.price,                       // E: 單價
+        item.price * item.quantity,       // F: 小計
+        formatOptions(item.options),      // G: 選項
+        item.notes || '',                 // H: 備註
+        index === 0 ? data.total : '',    // I: 總金額 (只在第一行顯示)
+        data.language,                    // J: 語言
+        '待處理',                          // K: 訂單狀態
+        generateOrderId()                 // L: 訂單編號
+      ];
+      
+      sheet.appendRow(row);
+    });
+    
+    // 發送通知（可選）
+    // sendNotification(data);
+    
+    return ContentService
+      .createTextOutput(JSON.stringify({
+        result: 'success',
+        message: '訂單已成功記錄',
+        orderId: generateOrderId()
+      }))
+      .setMimeType(ContentService.MimeType.JSON);
+      
+  } catch (error) {
+    Logger.log('錯誤: ' + error.toString());
+    
+    return ContentService
+      .createTextOutput(JSON.stringify({
+        result: 'error',
+        error: error.toString()
+      }))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+}
+
+function doGet(e) {
+  return ContentService
+    .createTextOutput('餐廳點餐系統 API 正在運行中...')
+    .setMimeType(ContentService.MimeType.TEXT);
+}
+
+// 格式化選項數據
+function formatOptions(options) {
+  if (!options) return '';
+  
+  const optionLabels = {
+    rice: '米飯',
+    spice: '辣度',
+    size: '大小',
+    set: '套餐'
+  };
+  
+  const valueLabels = {
+    white: '白飯',
+    brown: '糙米飯',
+    mixed: '五穀飯',
+    none: '不辣/單點',
+    mild: '微辣',
+    medium: '中辣',
+    hot: '大辣',
+    small: '小份',
+    large: '大份',
+    drink_set: '飲料套餐',
+    soup_set: '湯品套餐',
+    full_set: '完整套餐'
+  };
+  
+  return Object.entries(options)
