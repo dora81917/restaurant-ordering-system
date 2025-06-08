@@ -739,13 +739,16 @@
             renderMenu();
             updateLanguage();
             updateTableNumber();
-            
-            // 語言選擇器事件
-            document.getElementById('languageSelect').addEventListener('change', function() {
+        
+            // 語言切換事件
+            document.getElementById('languageSelect').addEventListener('change', function () {
                 currentLanguage = this.value;
                 updateLanguage();
                 renderMenu();
             });
+        
+            // ✅ 在這裡啟用購物車按鈕
+            document.getElementById('cartButton').disabled = false;
         }
 
         function renderMenu(category = 'all') {
